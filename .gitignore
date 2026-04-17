@@ -1,1 +1,4 @@
 /venv
+/qdrant_storage
+/app/__pycache__
+/data
