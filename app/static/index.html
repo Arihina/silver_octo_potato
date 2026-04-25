@@ -15,8 +15,10 @@
     --msg-bot: #f0f0f0;
     --blue: #2563eb;
     --blue-hover: #1d4ed8;
+    --blue-light: #eff6ff;
     --red: #dc2626;
     --red-hover: #b91c1c;
+    --green: #16a34a;
     --text: #1e1e1e;
     --text-light: #6b7280;
     --border: #e0e0e0;
@@ -24,292 +26,190 @@
     --font: "Segoe UI", system-ui, -apple-system, sans-serif;
   }
 
-  html, body {
-    height: 100%;
-    font-family: var(--font);
-    background: var(--bg);
-    color: var(--text);
-  }
+  html, body { height: 100%; font-family: var(--font); background: var(--bg); color: var(--text); }
 
-
-  .app {
-    display: flex;
-    height: 100vh;
-  }
-
+  .app { display: flex; height: 100vh; }
 
   .sidebar {
-    width: 280px;
-    min-width: 280px;
+    width: 280px; min-width: 280px;
     background: var(--sidebar-bg);
     border-right: 1px solid var(--border);
-    display: flex;
-    flex-direction: column;
+    display: flex; flex-direction: column;
   }
-
   .sidebar-header {
     padding: 16px;
     border-bottom: 1px solid var(--border);
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
+    display: flex; flex-direction: column; gap: 8px;
   }
-
-  .sidebar-header h2 {
-    font-size: 18px;
-    font-weight: 600;
-  }
+  .sidebar-header h2 { font-size: 18px; font-weight: 600; }
 
   .btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    padding: 8px 16px;
-    border: none;
-    border-radius: var(--radius);
-    font-size: 14px;
-    font-family: var(--font);
-    cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    padding: 8px 16px; border: none; border-radius: var(--radius);
+    font-size: 14px; font-family: var(--font); cursor: pointer;
     transition: background 0.15s, opacity 0.15s;
   }
-  .btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-blue { background: var(--blue); color: #fff; }
+  .btn-blue:hover:not(:disabled) { background: var(--blue-hover); }
+  .btn-outline {
+    background: #fff; color: var(--blue); border: 1px solid var(--blue);
   }
+  .btn-outline:hover { background: var(--blue-light); }
+  .btn-red { background: var(--red); color: #fff; }
+  .btn-red:hover:not(:disabled) { background: var(--red-hover); }
+  .btn-red-outline {
+    background: #fff; color: var(--red); border: 1px solid var(--red);
+  }
+  .btn-red-outline:hover { background: #fef2f2; }
+  .btn-full { width: 100%; }
 
-  .btn-blue {
-    background: var(--blue);
-    color: #fff;
-  }
-  .btn-blue:hover:not(:disabled) {
-    background: var(--blue-hover);
-  }
-
-  .btn-red {
-    background: var(--red);
-    color: #fff;
-  }
-  .btn-red:hover:not(:disabled) {
-    background: var(--red-hover);
-  }
-
-  .btn-new {
-    width: 100%;
-  }
-
-  .chat-list {
-    flex: 1;
-    overflow-y: auto;
-    padding: 8px;
-  }
+  .chat-list { flex: 1; overflow-y: auto; padding: 8px; }
 
   .chat-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 12px;
-    border-radius: var(--radius);
-    cursor: pointer;
-    transition: background 0.12s;
-    margin-bottom: 2px;
+    display: flex; align-items: center; gap: 6px;
+    padding: 10px 12px; border-radius: var(--radius);
+    cursor: pointer; transition: background 0.12s; margin-bottom: 2px;
   }
-  .chat-item:hover {
-    background: var(--bg);
-  }
-  .chat-item.active {
-    background: var(--msg-user);
-  }
+  .chat-item:hover { background: var(--bg); }
+  .chat-item.active { background: var(--msg-user); }
 
   .chat-item-title {
-    flex: 1;
-    font-size: 14px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    flex: 1; font-size: 14px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   }
-
-  .chat-item .btn-del {
-    background: none;
-    border: none;
-    color: var(--text-light);
-    cursor: pointer;
-    padding: 4px;
-    border-radius: 4px;
-    font-size: 16px;
-    line-height: 1;
-    transition: color 0.12s, background 0.12s;
+  .chat-item-btn {
+    background: none; border: none; cursor: pointer; padding: 4px;
+    border-radius: 4px; font-size: 14px; line-height: 1;
+    color: var(--text-light); transition: color 0.12s, background 0.12s;
     flex-shrink: 0;
   }
-  .chat-item .btn-del:hover {
-    color: var(--red);
-    background: #fee2e2;
-  }
-
+  .chat-item-btn:hover { color: var(--blue); background: var(--blue-light); }
+  .chat-item-btn.del:hover { color: var(--red); background: #fee2e2; }
 
   .sidebar-footer {
     padding: 12px 16px;
     border-top: 1px solid var(--border);
+    font-size: 12px; color: var(--text-light); text-align: center;
   }
-
-  .upload-zone {
-    position: relative;
-    border: 2px dashed var(--border);
-    border-radius: var(--radius);
-    padding: 14px;
-    text-align: center;
-    font-size: 13px;
-    color: var(--text-light);
-    transition: border-color 0.15s, background 0.15s;
-    cursor: pointer;
-  }
-  .upload-zone:hover,
-  .upload-zone.dragover {
-    border-color: var(--blue);
-    background: #eff6ff;
-  }
-  .upload-zone input {
-    position: absolute;
-    inset: 0;
-    opacity: 0;
-    cursor: pointer;
-  }
-  .upload-zone .upload-icon {
-    font-size: 22px;
-    margin-bottom: 4px;
-  }
-  .upload-status {
-    margin-top: 8px;
-    font-size: 12px;
-    min-height: 16px;
-  }
-  .upload-status.ok { color: #16a34a; }
-  .upload-status.err { color: var(--red); }
-
 
   .main {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
+    flex: 1; display: flex; flex-direction: column; min-width: 0;
   }
-
   .main-header {
     padding: 14px 20px;
     border-bottom: 1px solid var(--border);
     background: var(--chat-bg);
-    font-size: 16px;
-    font-weight: 600;
+    display: flex; align-items: center; gap: 10px;
   }
+  .main-header-title {
+    flex: 1; font-size: 16px; font-weight: 600;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .main-header .btn { padding: 6px 12px; font-size: 13px; }
 
   .messages {
-    flex: 1;
-    overflow-y: auto;
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
+    flex: 1; overflow-y: auto; padding: 20px;
+    display: flex; flex-direction: column; gap: 12px;
   }
-
   .empty-state {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    color: var(--text-light);
-    gap: 8px;
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    color: var(--text-light); gap: 8px;
   }
-  .empty-state .icon {
-    font-size: 48px;
-    opacity: 0.3;
-  }
+  .empty-state .icon { font-size: 48px; opacity: 0.3; }
 
   .msg {
-    max-width: 720px;
-    padding: 12px 16px;
-    border-radius: var(--radius);
-    font-size: 14px;
-    line-height: 1.55;
-    white-space: pre-wrap;
-    word-break: break-word;
+    max-width: 720px; padding: 12px 16px; border-radius: var(--radius);
+    font-size: 14px; line-height: 1.55; white-space: pre-wrap; word-break: break-word;
   }
-  .msg.user {
-    background: var(--msg-user);
-    align-self: flex-end;
-  }
-  .msg.assistant {
-    background: var(--msg-bot);
-    align-self: flex-start;
-  }
-
+  .msg.user { background: var(--msg-user); align-self: flex-end; }
+  .msg.assistant { background: var(--msg-bot); align-self: flex-start; }
   .msg-label {
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 4px;
-    color: var(--text-light);
+    font-size: 11px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.5px; margin-bottom: 4px; color: var(--text-light);
   }
-
   .msg-correction {
-    font-size: 12px;
-    color: var(--text-light);
-    margin-top: 6px;
-    font-style: italic;
+    font-size: 12px; color: var(--text-light); margin-top: 6px; font-style: italic;
   }
-
   .typing-indicator {
-    align-self: flex-start;
-    padding: 12px 16px;
-    background: var(--msg-bot);
-    border-radius: var(--radius);
-    font-size: 14px;
-    color: var(--text-light);
+    align-self: flex-start; padding: 12px 16px;
+    background: var(--msg-bot); border-radius: var(--radius);
+    font-size: 14px; color: var(--text-light);
   }
-  .typing-indicator span {
-    animation: blink 1.4s infinite both;
-  }
+  .typing-indicator span { animation: blink 1.4s infinite both; }
   .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
   .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
-  @keyframes blink {
-    0%, 80%, 100% { opacity: 0.2; }
-    40% { opacity: 1; }
-  }
+  @keyframes blink { 0%,80%,100%{opacity:.2} 40%{opacity:1} }
 
   .input-area {
     padding: 12px 20px 16px;
     border-top: 1px solid var(--border);
     background: var(--chat-bg);
   }
-
-  .input-row {
-    display: flex;
-    gap: 8px;
-    align-items: flex-end;
-  }
-
+  .input-row { display: flex; gap: 8px; align-items: flex-end; }
   .input-row textarea {
-    flex: 1;
-    resize: none;
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 10px 14px;
-    font-size: 14px;
-    font-family: var(--font);
-    line-height: 1.4;
-    min-height: 42px;
-    max-height: 150px;
-    outline: none;
-    transition: border-color 0.15s;
+    flex: 1; resize: none;
+    border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 10px 14px; font-size: 14px; font-family: var(--font);
+    line-height: 1.4; min-height: 42px; max-height: 150px;
+    outline: none; transition: border-color 0.15s;
   }
-  .input-row textarea:focus {
-    border-color: var(--blue);
+  .input-row textarea:focus { border-color: var(--blue); }
+  .input-row .btn { height: 42px; padding: 0 20px; }
+
+  .page { display: none; flex-direction: column; flex: 1; min-width: 0; }
+  .page.active { display: flex; }
+
+  .files-header {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    background: var(--chat-bg);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .files-header h2 { flex: 1; font-size: 16px; font-weight: 600; }
+
+  .files-body { flex: 1; overflow-y: auto; padding: 20px; }
+
+  .upload-zone {
+    position: relative;
+    border: 2px dashed var(--border); border-radius: var(--radius);
+    padding: 28px; text-align: center;
+    font-size: 14px; color: var(--text-light);
+    transition: border-color 0.15s, background 0.15s;
+    cursor: pointer; margin-bottom: 20px;
+  }
+  .upload-zone:hover, .upload-zone.dragover {
+    border-color: var(--blue); background: var(--blue-light);
+  }
+  .upload-zone input {
+    position: absolute; inset: 0; opacity: 0; cursor: pointer;
+  }
+  .upload-zone .upload-icon { font-size: 28px; margin-bottom: 6px; }
+  .upload-status { margin-top: 10px; font-size: 13px; min-height: 18px; }
+  .upload-status.ok { color: var(--green); }
+  .upload-status.err { color: var(--red); }
+
+  .file-list { display: flex; flex-direction: column; gap: 6px; }
+  .file-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 16px; background: #fff;
+    border: 1px solid var(--border); border-radius: var(--radius);
+  }
+  .file-item-icon { font-size: 20px; }
+  .file-item-info { flex: 1; }
+  .file-item-name { font-size: 14px; font-weight: 500; }
+  .file-item-meta { font-size: 12px; color: var(--text-light); margin-top: 2px; }
+  .file-item .btn { padding: 6px 12px; font-size: 13px; }
+
+  .files-empty {
+    text-align: center; padding: 40px; color: var(--text-light);
   }
 
-  .input-row .btn {
-    height: 42px;
-    padding: 0 20px;
+  .rename-input {
+    border: 1px solid var(--blue); border-radius: 6px;
+    padding: 2px 8px; font-size: 14px; font-family: var(--font);
+    outline: none; width: 100%;
   }
 </style>
 </head>
@@ -319,46 +219,49 @@
 
   <aside class="sidebar">
     <div class="sidebar-header">
-      <h2>💬 Чаты</h2>
-      <button class="btn btn-blue btn-new" onclick="createChat()">+ Новый чат</button>
+      <h2>💬 RAG Chat</h2>
+      <button class="btn btn-outline btn-full" onclick="showFiles()">📁 База знаний</button>
+      <button class="btn btn-blue btn-full" onclick="createChat()">+ Новый чат</button>
     </div>
-
     <div class="chat-list" id="chatList"></div>
-
-    <div class="sidebar-footer">
-      <div class="upload-zone" id="uploadZone">
-        <input type="file" accept=".txt" onchange="uploadFile(this.files[0])">
-        <div class="upload-icon">📄</div>
-        <div>Загрузить .txt файл</div>
-        <div>для базы знаний</div>
-      </div>
-      <div class="upload-status" id="uploadStatus"></div>
-    </div>
+    <div class="sidebar-footer">Гибридный поиск: vector + BM25</div>
   </aside>
 
-  <main class="main">
-    <div class="main-header" id="mainHeader">Выберите чат</div>
-
+  <div class="page active" id="pageChat">
+    <div class="main-header">
+      <span class="main-header-title" id="mainHeaderTitle">Выберите чат</span>
+      <button class="btn btn-outline" id="renameBtn" style="display:none" onclick="startRename()">✏️</button>
+    </div>
     <div class="messages" id="messages">
       <div class="empty-state">
         <div class="icon">💬</div>
-        <div>Выберите чат слева или создайте новый</div>
+        <div>Выберите чат или создайте новый</div>
       </div>
     </div>
-
     <div class="input-area">
       <div class="input-row">
-        <textarea id="questionInput"
-                  placeholder="Задайте вопрос..."
-                  rows="1"
-                  onkeydown="handleKey(event)"
-                  oninput="autoGrow(this)"></textarea>
-        <button class="btn btn-blue" onclick="sendQuestion()" id="sendBtn">
-          Отправить
-        </button>
+        <textarea id="questionInput" placeholder="Задайте вопрос..." rows="1"
+                  onkeydown="handleKey(event)" oninput="autoGrow(this)"></textarea>
+        <button class="btn btn-blue" onclick="sendQuestion()" id="sendBtn">Отправить</button>
       </div>
     </div>
-  </main>
+  </div>
+
+  <div class="page" id="pageFiles">
+    <div class="files-header">
+      <h2>📁 База знаний</h2>
+      <button class="btn btn-outline" onclick="showChat()">← К чатам</button>
+    </div>
+    <div class="files-body">
+      <div class="upload-zone" id="uploadZone">
+        <input type="file" accept=".txt" onchange="uploadFile(this.files[0])">
+        <div class="upload-icon">📄</div>
+        <div>Нажмите или перетащите .txt файл</div>
+      </div>
+      <div class="upload-status" id="uploadStatus"></div>
+      <div class="file-list" id="fileList"></div>
+    </div>
+  </div>
 
 </div>
 
@@ -366,6 +269,18 @@
 
 const API = '';
 let currentChatId = null;
+let currentChatTitle = '';
+
+function showFiles() {
+  document.getElementById('pageChat').classList.remove('active');
+  document.getElementById('pageFiles').classList.add('active');
+  loadFiles();
+}
+
+function showChat() {
+  document.getElementById('pageFiles').classList.remove('active');
+  document.getElementById('pageChat').classList.add('active');
+}
 
 async function loadChats() {
   const res = await fetch(`${API}/chats`);
@@ -377,7 +292,10 @@ async function loadChats() {
     div.className = 'chat-item' + (c.id === currentChatId ? ' active' : '');
     div.innerHTML = `
       <span class="chat-item-title">${esc(c.title)}</span>
-      <button class="btn-del" title="Удалить" onclick="event.stopPropagation(); deleteChat('${c.id}')">✕</button>
+      <button class="chat-item-btn" title="Переименовать"
+              onclick="event.stopPropagation(); startRenameInline('${c.id}', this.parentElement)">✏️</button>
+      <button class="chat-item-btn del" title="Удалить"
+              onclick="event.stopPropagation(); deleteChat('${c.id}')">✕</button>
     `;
     div.onclick = () => openChat(c.id, c.title);
     list.appendChild(div);
@@ -385,15 +303,14 @@ async function loadChats() {
 }
 
 async function createChat() {
+  showChat();
   const res = await fetch(`${API}/chats`, {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
     body: JSON.stringify({title: 'Новый чат'})
   });
   const chat = await res.json();
-  currentChatId = chat.id;
-  await loadChats();
-  openChat(chat.id, chat.title);
+  await openChat(chat.id, chat.title);
 }
 
 async function deleteChat(id) {
@@ -401,19 +318,96 @@ async function deleteChat(id) {
   await fetch(`${API}/chats/${id}`, {method: 'DELETE'});
   if (currentChatId === id) {
     currentChatId = null;
-    document.getElementById('mainHeader').textContent = 'Выберите чат';
+    currentChatTitle = '';
+    setHeader('Выберите чат', false);
     document.getElementById('messages').innerHTML = `
       <div class="empty-state">
         <div class="icon">💬</div>
-        <div>Выберите чат слева или создайте новый</div>
+        <div>Выберите чат или создайте новый</div>
       </div>`;
   }
   await loadChats();
 }
 
+
+function startRenameInline(chatId, itemEl) {
+  const titleEl = itemEl.querySelector('.chat-item-title');
+  const oldTitle = titleEl.textContent;
+  const input = document.createElement('input');
+  input.className = 'rename-input';
+  input.value = oldTitle;
+  titleEl.replaceWith(input);
+  input.focus();
+  input.select();
+
+  async function commit() {
+    const newTitle = input.value.trim() || oldTitle;
+    await fetch(`${API}/chats/${chatId}`, {
+      method: 'PATCH',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({title: newTitle})
+    });
+    if (chatId === currentChatId) {
+      currentChatTitle = newTitle;
+      setHeader(newTitle, true);
+    }
+    await loadChats();
+  }
+
+  input.onblur = commit;
+  input.onkeydown = e => {
+    if (e.key === 'Enter') { e.preventDefault(); input.blur(); }
+    if (e.key === 'Escape') { input.value = oldTitle; input.blur(); }
+  };
+}
+
+function startRename() {
+  if (!currentChatId) return;
+  const headerTitle = document.getElementById('mainHeaderTitle');
+  const oldTitle = currentChatTitle;
+  const input = document.createElement('input');
+  input.className = 'rename-input';
+  input.value = oldTitle;
+  input.style.fontSize = '16px';
+  input.style.fontWeight = '600';
+  headerTitle.replaceWith(input);
+  input.focus();
+  input.select();
+
+  async function commit() {
+    const newTitle = input.value.trim() || oldTitle;
+    await fetch(`${API}/chats/${currentChatId}`, {
+      method: 'PATCH',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({title: newTitle})
+    });
+    currentChatTitle = newTitle;
+    const span = document.createElement('span');
+    span.className = 'main-header-title';
+    span.id = 'mainHeaderTitle';
+    span.textContent = newTitle;
+    input.replaceWith(span);
+    await loadChats();
+  }
+
+  input.onblur = commit;
+  input.onkeydown = e => {
+    if (e.key === 'Enter') { e.preventDefault(); input.blur(); }
+    if (e.key === 'Escape') { input.value = oldTitle; input.blur(); }
+  };
+}
+
+function setHeader(title, showRename) {
+  document.getElementById('mainHeaderTitle').textContent = title;
+  document.getElementById('renameBtn').style.display = showRename ? '' : 'none';
+}
+
+
 async function openChat(id, title) {
+  showChat();
   currentChatId = id;
-  document.getElementById('mainHeader').textContent = title;
+  currentChatTitle = title;
+  setHeader(title, true);
   await loadChats();
   await loadMessages(id);
 }
@@ -422,7 +416,6 @@ async function loadMessages(chatId) {
   const container = document.getElementById('messages');
   const res = await fetch(`${API}/chats/${chatId}/messages`);
   const msgs = await res.json();
-
   if (msgs.length === 0) {
     container.innerHTML = `
       <div class="empty-state">
@@ -431,17 +424,16 @@ async function loadMessages(chatId) {
       </div>`;
     return;
   }
-
   container.innerHTML = '';
   msgs.forEach(m => appendMessage(m.role, m.content));
   scrollDown();
 }
 
+
 async function sendQuestion() {
   const input = document.getElementById('questionInput');
   const text = input.value.trim();
   if (!text) return;
-
   const btn = document.getElementById('sendBtn');
   btn.disabled = true;
   input.value = '';
@@ -453,7 +445,6 @@ async function sendQuestion() {
 
   appendMessage('user', text);
   scrollDown();
-
 
   const typing = document.createElement('div');
   typing.className = 'typing-indicator';
@@ -470,7 +461,6 @@ async function sendQuestion() {
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify(body)
     });
-
     typing.remove();
 
     if (!res.ok) {
@@ -485,22 +475,57 @@ async function sendQuestion() {
 
     if (!currentChatId || currentChatId !== data.chat_id) {
       currentChatId = data.chat_id;
+      currentChatTitle = text.slice(0, 50) + (text.length > 50 ? '...' : '');
+      setHeader(currentChatTitle, true);
       await loadChats();
-      document.getElementById('mainHeader').textContent =
-        text.slice(0, 50) + (text.length > 50 ? '...' : '');
     }
-    appendMessage('assistant', data.answer, data.original_query !== data.corrected_query
-      ? `Исправлено: "${data.corrected_query}"`
-      : null
-    );
-    scrollDown();
 
+    const correction = data.original_query !== data.corrected_query
+      ? `Исправлено: «${data.corrected_query}»` : null;
+    appendMessage('assistant', data.answer, correction);
+    scrollDown();
   } catch (e) {
     typing.remove();
     appendMessage('assistant', '⚠️ Не удалось связаться с сервером');
   }
-
   btn.disabled = false;
+}
+
+
+async function loadFiles() {
+  const res = await fetch(`${API}/files`);
+  const files = await res.json();
+  const list = document.getElementById('fileList');
+  if (files.length === 0) {
+    list.innerHTML = '<div class="files-empty">Файлы ещё не загружены</div>';
+    return;
+  }
+  list.innerHTML = '';
+  files.forEach(f => {
+    const div = document.createElement('div');
+    div.className = 'file-item';
+    const date = new Date(f.created_at).toLocaleString('ru-RU');
+    div.innerHTML = `
+      <span class="file-item-icon">📄</span>
+      <div class="file-item-info">
+        <div class="file-item-name">${esc(f.filename)}</div>
+        <div class="file-item-meta">${f.chunks_count} чанков · ${date}</div>
+      </div>
+      <button class="btn btn-red-outline" onclick="deleteFile('${f.id}', '${esc(f.filename)}')">Удалить</button>
+    `;
+    list.appendChild(div);
+  });
+}
+
+async function deleteFile(id, name) {
+  if (!confirm(`Удалить файл «${name}» и все его чанки из базы знаний?`)) return;
+  const res = await fetch(`${API}/files/${id}`, {method: 'DELETE'});
+  if (res.ok) {
+    await loadFiles();
+  } else {
+    const err = await res.json();
+    alert(err.detail || 'Ошибка удаления');
+  }
 }
 
 async function uploadFile(file) {
@@ -516,8 +541,9 @@ async function uploadFile(file) {
     const res = await fetch(`${API}/upload`, {method: 'POST', body: fd});
     const data = await res.json();
     if (res.ok) {
-      status.textContent = `✓ ${data.filename}: ${data.chunks_added} чанков`;
+      status.textContent = `✓ ${data.filename}: ${data.chunks_added} чанков добавлено`;
       status.className = 'upload-status ok';
+      loadFiles();
     } else {
       status.textContent = '✗ ' + (data.detail || 'Ошибка');
       status.className = 'upload-status err';
@@ -526,7 +552,6 @@ async function uploadFile(file) {
     status.textContent = '✗ Сервер недоступен';
     status.className = 'upload-status err';
   }
-
   document.querySelector('#uploadZone input').value = '';
 }
 
@@ -534,10 +559,10 @@ const zone = document.getElementById('uploadZone');
 zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('dragover'); });
 zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
 zone.addEventListener('drop', e => {
-  e.preventDefault();
-  zone.classList.remove('dragover');
+  e.preventDefault(); zone.classList.remove('dragover');
   if (e.dataTransfer.files.length) uploadFile(e.dataTransfer.files[0]);
 });
+
 
 function appendMessage(role, content, correction) {
   const container = document.getElementById('messages');
@@ -545,9 +570,7 @@ function appendMessage(role, content, correction) {
   div.className = `msg ${role}`;
   let html = `<div class="msg-label">${role === 'user' ? 'Вы' : 'Ассистент'}</div>`;
   html += esc(content);
-  if (correction) {
-    html += `<div class="msg-correction">${esc(correction)}</div>`;
-  }
+  if (correction) html += `<div class="msg-correction">${esc(correction)}</div>`;
   div.innerHTML = html;
   container.appendChild(div);
 }
@@ -564,10 +587,7 @@ function esc(s) {
 }
 
 function handleKey(e) {
-  if (e.key === 'Enter' && !e.shiftKey) {
-    e.preventDefault();
-    sendQuestion();
-  }
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendQuestion(); }
 }
 
 function autoGrow(el) {

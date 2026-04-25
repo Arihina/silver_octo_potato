@@ -22,6 +22,7 @@ class BM25Store:
         self._path: Path = settings.data_path / "bm25.pkl"
         self.ids: List[str] = []
         self.texts: List[str] = []
+        self.sources: List[str] = []
         self.tokens: List[List[str]] = []
         self.bm25: BM25Okapi | None = None
         self._load()
@@ -32,13 +33,14 @@ class BM25Store:
                 data = pickle.load(f)
             self.ids = data["ids"]
             self.texts = data["texts"]
+            self.sources = data.get("sources", [""] * len(self.ids))
             self.tokens = data["tokens"]
             self._rebuild()
 
     def _persist(self):
         with open(self._path, "wb") as f:
             pickle.dump(
-                {"ids": self.ids, "texts": self.texts, "tokens": self.tokens},
+                {"ids": self.ids, "texts": self.texts, "sources": self.sources, "tokens": self.tokens},
                 f,
             )
 
@@ -48,12 +50,23 @@ class BM25Store:
         else:
             self.bm25 = None
 
-    def add(self, ids: List[str], texts: List[str]):
+    def add(self, ids: List[str], texts: List[str], source: str = ""):
         with self._lock:
             for i, t in zip(ids, texts):
                 self.ids.append(i)
                 self.texts.append(t)
+                self.sources.append(source)
                 self.tokens.append(tokenize(t))
+            self._rebuild()
+            self._persist()
+
+    def delete_by_ids(self, ids_to_remove: set[str]):
+        with self._lock:
+            keep = [(i, t, s, tok) for i, t, s, tok in zip(self.ids, self.texts, self.sources, self.tokens) if i not in ids_to_remove]
+            if keep:
+                self.ids, self.texts, self.sources, self.tokens = map(list, zip(*keep))
+            else:
+                self.ids, self.texts, self.sources, self.tokens = [], [], [], []
             self._rebuild()
             self._persist()
 
@@ -79,6 +92,7 @@ class BM25Store:
         with self._lock:
             self.ids.clear()
             self.texts.clear()
+            self.sources.clear()
             self.tokens.clear()
             self.bm25 = None
             if self._path.exists():

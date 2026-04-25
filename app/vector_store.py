@@ -54,6 +54,37 @@ class VectorStore:
     def count(self) -> int:
         return self.client.count(collection_name=self.collection, exact=True).count
 
+    def get_ids_by_source(self, source: str) -> list[str]:
+        ids = []
+        offset = None
+        while True:
+            result = self.client.scroll(
+                collection_name=self.collection,
+                scroll_filter=qm.Filter(
+                    must=[qm.FieldCondition(key="source", match=qm.MatchValue(value=source))]
+                ),
+                limit=100,
+                offset=offset,
+                with_payload=False,
+            )
+            points, next_offset = result
+            ids.extend(str(p.id) for p in points)
+            if next_offset is None:
+                break
+            offset = next_offset
+        return ids
+
+    def delete_by_source(self, source: str):
+        self.client.delete(
+            collection_name=self.collection,
+            points_selector=qm.FilterSelector(
+                filter=qm.Filter(
+                    must=[qm.FieldCondition(key="source", match=qm.MatchValue(value=source))]
+                )
+            ),
+            wait=True,
+        )
+
     def clear(self):
         self.client.delete_collection(self.collection)
         self._ensure_collection()

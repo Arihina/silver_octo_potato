@@ -34,6 +34,12 @@ class ChatStore:
                     FOREIGN KEY (chat_id) REFERENCES chats(id) ON DELETE CASCADE
                 );
                 CREATE INDEX IF NOT EXISTS idx_messages_chat ON messages(chat_id, created_at);
+                CREATE TABLE IF NOT EXISTS files (
+                    id TEXT PRIMARY KEY,
+                    filename TEXT NOT NULL,
+                    chunks_count INTEGER NOT NULL,
+                    created_at TEXT NOT NULL
+                );
             """)
             self._conn.commit()
 
@@ -84,7 +90,7 @@ class ChatStore:
             cur = self._conn.execute("DELETE FROM chats WHERE id = ?", (chat_id,))
             self._conn.commit()
             return cur.rowcount > 0
-
+        
 
     def add_message(self, chat_id: str, role: str, content: str) -> dict:
         with self._lock:
@@ -121,6 +127,42 @@ class ChatStore:
                 (chat_id,),
             ).fetchall()
             return [dict(r) for r in rows]
+
+    def add_file(self, filename: str, chunks_count: int) -> dict:
+        with self._lock:
+            file_id = str(uuid.uuid4())
+            now = self._now()
+            self._conn.execute(
+                "INSERT INTO files (id, filename, chunks_count, created_at) VALUES (?, ?, ?, ?)",
+                (file_id, filename, chunks_count, now),
+            )
+            self._conn.commit()
+            return {"id": file_id, "filename": filename, "chunks_count": chunks_count, "created_at": now}
+
+    def list_files(self) -> list[dict]:
+        with self._lock:
+            rows = self._conn.execute(
+                "SELECT id, filename, chunks_count, created_at FROM files ORDER BY created_at DESC"
+            ).fetchall()
+            return [dict(r) for r in rows]
+
+    def get_file(self, file_id: str) -> Optional[dict]:
+        with self._lock:
+            row = self._conn.execute(
+                "SELECT id, filename, chunks_count, created_at FROM files WHERE id = ?",
+                (file_id,),
+            ).fetchone()
+            return dict(row) if row else None
+
+    def delete_file(self, file_id: str) -> Optional[str]:
+        with self._lock:
+            row = self._conn.execute("SELECT filename FROM files WHERE id = ?", (file_id,)).fetchone()
+            if not row:
+                return None
+            filename = row["filename"]
+            self._conn.execute("DELETE FROM files WHERE id = ?", (file_id,))
+            self._conn.commit()
+            return filename
 
 
 chat_store = ChatStore()
