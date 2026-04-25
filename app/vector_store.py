@@ -41,7 +41,7 @@ class VectorStore:
         self.client.upsert(collection_name=self.collection, points=points, wait=True)
         return ids
 
-    def search(self, query: str, top_k: int) -> List[Tuple[str, str, float]]:
+    def search(self, query: str, top_k: int) -> List[Tuple[str, str, str, float]]:
         qv = embedder.embed_query(query)
         res = self.client.query_points(
             collection_name=self.collection,
@@ -49,7 +49,7 @@ class VectorStore:
             limit=top_k,
             with_payload=True,
         ).points
-        return [(str(p.id), p.payload["text"], float(p.score)) for p in res]
+        return [(str(p.id), p.payload["text"], p.payload.get("source", ""), float(p.score)) for p in res]
 
     def count(self) -> int:
         return self.client.count(collection_name=self.collection, exact=True).count

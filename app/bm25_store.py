@@ -70,7 +70,7 @@ class BM25Store:
             self._rebuild()
             self._persist()
 
-    def search(self, query: str, top_k: int) -> List[Tuple[str, str, float]]:
+    def search(self, query: str, top_k: int) -> List[Tuple[str, str, str, float]]:
         with self._lock:
             if not self.bm25 or not self.ids:
                 return []
@@ -79,7 +79,7 @@ class BM25Store:
                 return []
             scores = self.bm25.get_scores(q_tokens)
             idxs = sorted(range(len(scores)), key=lambda i: scores[i], reverse=True)[:top_k]
-            return [(self.ids[i], self.texts[i], float(scores[i])) for i in idxs if scores[i] > 0]
+            return [(self.ids[i], self.texts[i], self.sources[i], float(scores[i])) for i in idxs if scores[i] > 0]
 
     def vocabulary(self) -> List[str]:
         with self._lock:

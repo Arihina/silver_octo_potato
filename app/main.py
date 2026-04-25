@@ -37,6 +37,7 @@ class AskResponse(BaseModel):
     chat_id: str
     original_query: str
     corrected_query: str
+    sources: list[str]
     used_chunks: list[dict]
 
 
@@ -134,27 +135,35 @@ async def ask(req: AskRequest):
             chat_id=chat_id,
             original_query=req.question,
             corrected_query=corrected,
+            sources=[],
             used_chunks=[],
         )
 
     context_texts = [r.text for r in retrieved]
 
+    seen = set()
+    sources = []
+    for r in retrieved:
+        if r.source and r.source not in seen:
+            seen.add(r.source)
+            sources.append(r.source)
+
     answer = await generate(corrected, context_texts, history=history)
 
     chat_store.add_message(chat_id, "user", req.question)
-    chat_store.add_message(chat_id, "assistant", answer)
+    chat_store.add_message(chat_id, "assistant", answer, sources=sources)
 
     return AskResponse(
         answer=answer,
         chat_id=chat_id,
         original_query=req.question,
         corrected_query=corrected,
+        sources=sources,
         used_chunks=[
-            {"id": r.id, "score": round(r.score, 4), "text": r.text}
+            {"id": r.id, "score": round(r.score, 4), "source": r.source, "text": r.text}
             for r in retrieved
         ],
     )
-
 
 @app.post("/chats")
 async def create_chat(body: ChatCreate):

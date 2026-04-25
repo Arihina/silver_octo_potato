@@ -10,6 +10,7 @@ from .vector_store import vector_store
 class RetrievedChunk:
     id: str
     text: str
+    source: str
     score: float
 
 
@@ -22,16 +23,16 @@ def hybrid_search(query: str) -> List[RetrievedChunk]:
 
     fused: dict[str, list] = {}
 
-    for rank, (cid, text, _score) in enumerate(vec_res):
-        fused.setdefault(cid, [0.0, text])
+    for rank, (cid, text, source, _score) in enumerate(vec_res):
+        fused.setdefault(cid, [0.0, text, source])
         fused[cid][0] += 1.0 / (RRF_K + rank + 1)
 
-    for rank, (cid, text, _score) in enumerate(bm25_res):
-        fused.setdefault(cid, [0.0, text])
+    for rank, (cid, text, source, _score) in enumerate(bm25_res):
+        fused.setdefault(cid, [0.0, text, source])
         fused[cid][0] += 1.0 / (RRF_K + rank + 1)
 
     items = [
-        RetrievedChunk(id=cid, text=data[1], score=data[0])
+        RetrievedChunk(id=cid, text=data[1], source=data[2], score=data[0])
         for cid, data in fused.items()
     ]
     items.sort(key=lambda x: x.score, reverse=True)

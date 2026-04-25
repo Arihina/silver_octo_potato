@@ -132,6 +132,10 @@
   .msg-correction {
     font-size: 12px; color: var(--text-light); margin-top: 6px; font-style: italic;
   }
+  .msg-sources {
+    font-size: 12px; color: var(--blue); margin-top: 8px;
+    padding-top: 6px; border-top: 1px solid var(--border);
+  }
   .typing-indicator {
     align-self: flex-start; padding: 12px 16px;
     background: var(--msg-bot); border-radius: var(--radius);
@@ -205,7 +209,6 @@
   .files-empty {
     text-align: center; padding: 40px; color: var(--text-light);
   }
-
   .rename-input {
     border: 1px solid var(--blue); border-radius: 6px;
     padding: 2px 8px; font-size: 14px; font-family: var(--font);
@@ -216,7 +219,6 @@
 <body>
 
 <div class="app">
-
   <aside class="sidebar">
     <div class="sidebar-header">
       <h2>💬 RAG Chat</h2>
@@ -425,7 +427,7 @@ async function loadMessages(chatId) {
     return;
   }
   container.innerHTML = '';
-  msgs.forEach(m => appendMessage(m.role, m.content));
+  msgs.forEach(m => appendMessage(m.role, m.content, null, m.sources));
   scrollDown();
 }
 
@@ -482,7 +484,7 @@ async function sendQuestion() {
 
     const correction = data.original_query !== data.corrected_query
       ? `Исправлено: «${data.corrected_query}»` : null;
-    appendMessage('assistant', data.answer, correction);
+    appendMessage('assistant', data.answer, correction, data.sources);
     scrollDown();
   } catch (e) {
     typing.remove();
@@ -490,7 +492,6 @@ async function sendQuestion() {
   }
   btn.disabled = false;
 }
-
 
 async function loadFiles() {
   const res = await fetch(`${API}/files`);
@@ -563,13 +564,15 @@ zone.addEventListener('drop', e => {
   if (e.dataTransfer.files.length) uploadFile(e.dataTransfer.files[0]);
 });
 
-
-function appendMessage(role, content, correction) {
+function appendMessage(role, content, correction, sources) {
   const container = document.getElementById('messages');
   const div = document.createElement('div');
   div.className = `msg ${role}`;
   let html = `<div class="msg-label">${role === 'user' ? 'Вы' : 'Ассистент'}</div>`;
   html += esc(content);
+  if (sources && sources.length > 0) {
+    html += `<div class="msg-sources">📎 Источники: ${sources.map(s => esc(s)).join(', ')}</div>`;
+  }
   if (correction) html += `<div class="msg-correction">${esc(correction)}</div>`;
   div.innerHTML = html;
   container.appendChild(div);
