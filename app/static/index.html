@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RAG Chat</title>
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+  :root {
+    --bg: #f5f6f8;
+    --sidebar-bg: #ffffff;
+    --chat-bg: #ffffff;
+    --msg-user: #e8f0fe;
+    --msg-bot: #f0f0f0;
+    --blue: #2563eb;
+    --blue-hover: #1d4ed8;
+    --red: #dc2626;
+    --red-hover: #b91c1c;
+    --text: #1e1e1e;
+    --text-light: #6b7280;
+    --border: #e0e0e0;
+    --radius: 10px;
+    --font: "Segoe UI", system-ui, -apple-system, sans-serif;
+  }
+
+  html, body {
+    height: 100%;
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text);
+  }
+
+
+  .app {
+    display: flex;
+    height: 100vh;
+  }
+
+
+  .sidebar {
+    width: 280px;
+    min-width: 280px;
+    background: var(--sidebar-bg);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .sidebar-header {
+    padding: 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .sidebar-header h2 {
+    font-size: 18px;
+    font-weight: 600;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border: none;
+    border-radius: var(--radius);
+    font-size: 14px;
+    font-family: var(--font);
+    cursor: pointer;
+    transition: background 0.15s, opacity 0.15s;
+  }
+  .btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .btn-blue {
+    background: var(--blue);
+    color: #fff;
+  }
+  .btn-blue:hover:not(:disabled) {
+    background: var(--blue-hover);
+  }
+
+  .btn-red {
+    background: var(--red);
+    color: #fff;
+  }
+  .btn-red:hover:not(:disabled) {
+    background: var(--red-hover);
+  }
+
+  .btn-new {
+    width: 100%;
+  }
+
+  .chat-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px;
+  }
+
+  .chat-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: background 0.12s;
+    margin-bottom: 2px;
+  }
+  .chat-item:hover {
+    background: var(--bg);
+  }
+  .chat-item.active {
+    background: var(--msg-user);
+  }
+
+  .chat-item-title {
+    flex: 1;
+    font-size: 14px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .chat-item .btn-del {
+    background: none;
+    border: none;
+    color: var(--text-light);
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    font-size: 16px;
+    line-height: 1;
+    transition: color 0.12s, background 0.12s;
+    flex-shrink: 0;
+  }
+  .chat-item .btn-del:hover {
+    color: var(--red);
+    background: #fee2e2;
+  }
+
+
+  .sidebar-footer {
+    padding: 12px 16px;
+    border-top: 1px solid var(--border);
+  }
+
+  .upload-zone {
+    position: relative;
+    border: 2px dashed var(--border);
+    border-radius: var(--radius);
+    padding: 14px;
+    text-align: center;
+    font-size: 13px;
+    color: var(--text-light);
+    transition: border-color 0.15s, background 0.15s;
+    cursor: pointer;
+  }
+  .upload-zone:hover,
+  .upload-zone.dragover {
+    border-color: var(--blue);
+    background: #eff6ff;
+  }
+  .upload-zone input {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+  .upload-zone .upload-icon {
+    font-size: 22px;
+    margin-bottom: 4px;
+  }
+  .upload-status {
+    margin-top: 8px;
+    font-size: 12px;
+    min-height: 16px;
+  }
+  .upload-status.ok { color: #16a34a; }
+  .upload-status.err { color: var(--red); }
+
+
+  .main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  .main-header {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    background: var(--chat-bg);
+    font-size: 16px;
+    font-weight: 600;
+  }
+
+  .messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .empty-state {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-light);
+    gap: 8px;
+  }
+  .empty-state .icon {
+    font-size: 48px;
+    opacity: 0.3;
+  }
+
+  .msg {
+    max-width: 720px;
+    padding: 12px 16px;
+    border-radius: var(--radius);
+    font-size: 14px;
+    line-height: 1.55;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .msg.user {
+    background: var(--msg-user);
+    align-self: flex-end;
+  }
+  .msg.assistant {
+    background: var(--msg-bot);
+    align-self: flex-start;
+  }
+
+  .msg-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+    color: var(--text-light);
+  }
+
+  .msg-correction {
+    font-size: 12px;
+    color: var(--text-light);
+    margin-top: 6px;
+    font-style: italic;
+  }
+
+  .typing-indicator {
+    align-self: flex-start;
+    padding: 12px 16px;
+    background: var(--msg-bot);
+    border-radius: var(--radius);
+    font-size: 14px;
+    color: var(--text-light);
+  }
+  .typing-indicator span {
+    animation: blink 1.4s infinite both;
+  }
+  .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+  .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes blink {
+    0%, 80%, 100% { opacity: 0.2; }
+    40% { opacity: 1; }
+  }
+
+  .input-area {
+    padding: 12px 20px 16px;
+    border-top: 1px solid var(--border);
+    background: var(--chat-bg);
+  }
+
+  .input-row {
+    display: flex;
+    gap: 8px;
+    align-items: flex-end;
+  }
+
+  .input-row textarea {
+    flex: 1;
+    resize: none;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px 14px;
+    font-size: 14px;
+    font-family: var(--font);
+    line-height: 1.4;
+    min-height: 42px;
+    max-height: 150px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .input-row textarea:focus {
+    border-color: var(--blue);
+  }
+
+  .input-row .btn {
+    height: 42px;
+    padding: 0 20px;
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <h2>💬 Чаты</h2>
+      <button class="btn btn-blue btn-new" onclick="createChat()">+ Новый чат</button>
+    </div>
+
+    <div class="chat-list" id="chatList"></div>
+
+    <div class="sidebar-footer">
+      <div class="upload-zone" id="uploadZone">
+        <input type="file" accept=".txt" onchange="uploadFile(this.files[0])">
+        <div class="upload-icon">📄</div>
+        <div>Загрузить .txt файл</div>
+        <div>для базы знаний</div>
+      </div>
+      <div class="upload-status" id="uploadStatus"></div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="main-header" id="mainHeader">Выберите чат</div>
+
+    <div class="messages" id="messages">
+      <div class="empty-state">
+        <div class="icon">💬</div>
+        <div>Выберите чат слева или создайте новый</div>
+      </div>
+    </div>
+
+    <div class="input-area">
+      <div class="input-row">
+        <textarea id="questionInput"
+                  placeholder="Задайте вопрос..."
+                  rows="1"
+                  onkeydown="handleKey(event)"
+                  oninput="autoGrow(this)"></textarea>
+        <button class="btn btn-blue" onclick="sendQuestion()" id="sendBtn">
+          Отправить
+        </button>
+      </div>
+    </div>
+  </main>
+
+</div>
+
+<script>
+
+const API = '';
+let currentChatId = null;
+
+async function loadChats() {
+  const res = await fetch(`${API}/chats`);
+  const chats = await res.json();
+  const list = document.getElementById('chatList');
+  list.innerHTML = '';
+  chats.forEach(c => {
+    const div = document.createElement('div');
+    div.className = 'chat-item' + (c.id === currentChatId ? ' active' : '');
+    div.innerHTML = `
+      <span class="chat-item-title">${esc(c.title)}</span>
+      <button class="btn-del" title="Удалить" onclick="event.stopPropagation(); deleteChat('${c.id}')">✕</button>
+    `;
+    div.onclick = () => openChat(c.id, c.title);
+    list.appendChild(div);
+  });
+}
+
+async function createChat() {
+  const res = await fetch(`${API}/chats`, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({title: 'Новый чат'})
+  });
+  const chat = await res.json();
+  currentChatId = chat.id;
+  await loadChats();
+  openChat(chat.id, chat.title);
+}
+
+async function deleteChat(id) {
+  if (!confirm('Удалить чат и всю историю?')) return;
+  await fetch(`${API}/chats/${id}`, {method: 'DELETE'});
+  if (currentChatId === id) {
+    currentChatId = null;
+    document.getElementById('mainHeader').textContent = 'Выберите чат';
+    document.getElementById('messages').innerHTML = `
+      <div class="empty-state">
+        <div class="icon">💬</div>
+        <div>Выберите чат слева или создайте новый</div>
+      </div>`;
+  }
+  await loadChats();
+}
+
+async function openChat(id, title) {
+  currentChatId = id;
+  document.getElementById('mainHeader').textContent = title;
+  await loadChats();
+  await loadMessages(id);
+}
+
+async function loadMessages(chatId) {
+  const container = document.getElementById('messages');
+  const res = await fetch(`${API}/chats/${chatId}/messages`);
+  const msgs = await res.json();
+
+  if (msgs.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <div class="icon">✨</div>
+        <div>Задайте первый вопрос</div>
+      </div>`;
+    return;
+  }
+
+  container.innerHTML = '';
+  msgs.forEach(m => appendMessage(m.role, m.content));
+  scrollDown();
+}
+
+async function sendQuestion() {
+  const input = document.getElementById('questionInput');
+  const text = input.value.trim();
+  if (!text) return;
+
+  const btn = document.getElementById('sendBtn');
+  btn.disabled = true;
+  input.value = '';
+  autoGrow(input);
+
+  const container = document.getElementById('messages');
+  const empty = container.querySelector('.empty-state');
+  if (empty) empty.remove();
+
+  appendMessage('user', text);
+  scrollDown();
+
+
+  const typing = document.createElement('div');
+  typing.className = 'typing-indicator';
+  typing.innerHTML = '<span>●</span><span>●</span><span>●</span>';
+  container.appendChild(typing);
+  scrollDown();
+
+  try {
+    const body = {question: text};
+    if (currentChatId) body.chat_id = currentChatId;
+
+    const res = await fetch(`${API}/ask`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(body)
+    });
+
+    typing.remove();
+
+    if (!res.ok) {
+      const err = await res.json();
+      appendMessage('assistant', '⚠️ ' + (err.detail || 'Ошибка сервера'));
+      btn.disabled = false;
+      scrollDown();
+      return;
+    }
+
+    const data = await res.json();
+
+    if (!currentChatId || currentChatId !== data.chat_id) {
+      currentChatId = data.chat_id;
+      await loadChats();
+      document.getElementById('mainHeader').textContent =
+        text.slice(0, 50) + (text.length > 50 ? '...' : '');
+    }
+    appendMessage('assistant', data.answer, data.original_query !== data.corrected_query
+      ? `Исправлено: "${data.corrected_query}"`
+      : null
+    );
+    scrollDown();
+
+  } catch (e) {
+    typing.remove();
+    appendMessage('assistant', '⚠️ Не удалось связаться с сервером');
+  }
+
+  btn.disabled = false;
+}
+
+async function uploadFile(file) {
+  if (!file) return;
+  const status = document.getElementById('uploadStatus');
+  status.textContent = 'Загружаю...';
+  status.className = 'upload-status';
+
+  const fd = new FormData();
+  fd.append('file', file);
+
+  try {
+    const res = await fetch(`${API}/upload`, {method: 'POST', body: fd});
+    const data = await res.json();
+    if (res.ok) {
+      status.textContent = `✓ ${data.filename}: ${data.chunks_added} чанков`;
+      status.className = 'upload-status ok';
+    } else {
+      status.textContent = '✗ ' + (data.detail || 'Ошибка');
+      status.className = 'upload-status err';
+    }
+  } catch (e) {
+    status.textContent = '✗ Сервер недоступен';
+    status.className = 'upload-status err';
+  }
+
+  document.querySelector('#uploadZone input').value = '';
+}
+
+const zone = document.getElementById('uploadZone');
+zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('dragover'); });
+zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+zone.addEventListener('drop', e => {
+  e.preventDefault();
+  zone.classList.remove('dragover');
+  if (e.dataTransfer.files.length) uploadFile(e.dataTransfer.files[0]);
+});
+
+function appendMessage(role, content, correction) {
+  const container = document.getElementById('messages');
+  const div = document.createElement('div');
+  div.className = `msg ${role}`;
+  let html = `<div class="msg-label">${role === 'user' ? 'Вы' : 'Ассистент'}</div>`;
+  html += esc(content);
+  if (correction) {
+    html += `<div class="msg-correction">${esc(correction)}</div>`;
+  }
+  div.innerHTML = html;
+  container.appendChild(div);
+}
+
+function scrollDown() {
+  const c = document.getElementById('messages');
+  c.scrollTop = c.scrollHeight;
+}
+
+function esc(s) {
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendQuestion();
+  }
+}
+
+function autoGrow(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 150) + 'px';
+}
+
+loadChats();
+
+</script>
+</body>
+</html>

@@ -1,4 +1,7 @@
+from pathlib import Path
+
 from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi.responses import HTMLResponse
 from pydantic import BaseModel, Field
 
 from .bm25_store import bm25_store
@@ -12,6 +15,16 @@ from .vector_store import vector_store
 
 app = FastAPI(title="RAG Service", version="0.2.0")
 
+_STATIC_DIR = Path(__file__).parent / "static"
+
+
+@app.get("/", response_class=HTMLResponse)
+async def index():
+    html_path = _STATIC_DIR / "index.html"
+    return HTMLResponse(content=html_path.read_text(encoding="utf-8"))
+
+
+# ---- Pydantic models ----
 
 class AskRequest(BaseModel):
     question: str = Field(..., min_length=1)
@@ -43,6 +56,8 @@ class ChatRename(BaseModel):
     title: str = Field(..., min_length=1)
 
 
+# ---- Health ----
+
 @app.get("/health")
 async def health():
     return {
@@ -52,6 +67,8 @@ async def health():
         "chats": len(chat_store.list_chats()),
     }
 
+
+# ---- Upload ----
 
 @app.post("/upload", response_model=UploadResponse)
 async def upload(file: UploadFile = File(...)):
@@ -88,6 +105,8 @@ async def upload(file: UploadFile = File(...)):
     )
 
 
+# ---- Ask (с историей) ----
+
 @app.post("/ask", response_model=AskResponse)
 async def ask(req: AskRequest):
     if vector_store.count() == 0:
@@ -96,23 +115,30 @@ async def ask(req: AskRequest):
             detail="Корпус пуст — сначала загрузите документ через /upload",
         )
 
+    # Получаем или создаём чат
     if req.chat_id:
         chat = chat_store.get_chat(req.chat_id)
         if not chat:
             raise HTTPException(status_code=404, detail=f"Чат {req.chat_id} не найден")
     else:
+        # Авто-создание чата с началом вопроса как заголовком
         title = req.question[:50] + ("..." if len(req.question) > 50 else "")
         chat = chat_store.create_chat(title=title)
 
     chat_id = chat["id"]
 
+    # Загружаем историю
     history = chat_store.get_history(chat_id, last_n=settings.history_length)
+
+    # Исправление опечаток
     corrected = spell.correct_query(req.question)
 
+    # Гибридный поиск
     retrieved = hybrid_search(corrected)
 
     if not retrieved:
         answer = "В загруженных документах ничего подходящего не найдено."
+        # Всё равно сохраняем в историю
         chat_store.add_message(chat_id, "user", req.question)
         chat_store.add_message(chat_id, "assistant", answer)
         return AskResponse(
@@ -125,8 +151,10 @@ async def ask(req: AskRequest):
 
     context_texts = [r.text for r in retrieved]
 
+    # Генерация с историей
     answer = await generate(corrected, context_texts, history=history)
 
+    # Сохраняем пару user/assistant в историю
     chat_store.add_message(chat_id, "user", req.question)
     chat_store.add_message(chat_id, "assistant", answer)
 
@@ -141,6 +169,8 @@ async def ask(req: AskRequest):
         ],
     )
 
+
+# ---- Chat management ----
 
 @app.post("/chats")
 async def create_chat(body: ChatCreate):
@@ -182,6 +212,8 @@ async def delete_chat(chat_id: str):
         raise HTTPException(status_code=404, detail="Чат не найден")
     return {"status": "deleted", "chat_id": chat_id}
 
+
+# ---- Clear all ----
 
 @app.delete("/clear")
 async def clear():
