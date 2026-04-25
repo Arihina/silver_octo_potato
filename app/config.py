@@ -10,8 +10,10 @@ class Settings(BaseSettings):
     qdrant_collection: str = "rag_docs"
 
     # Ollama
-    ollama_url: str = "http://localhost:11434"
     ollama_model: str = "gemma2:2b"
+
+    # История диалога
+    history_length: int = 20
 
     # Embeddings
     embedding_model: str = "intfloat/multilingual-e5-small"
